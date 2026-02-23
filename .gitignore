@@ -1,0 +1,12 @@
+# Coq intermediate files
+*.vo
+*.vok
+*.vos
+*.glob
+*.aux
+.*.aux
+.CoqProject
+
+# Python cache
+__pycache__/
+*.pyc
