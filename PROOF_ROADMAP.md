@@ -3,24 +3,25 @@
 
 This document outlines the roadmap for formally verifying the security properties of the Isotropic Spectral Holography (ISH) construction using a theorem prover (e.g., Coq or Lean).
 
-## Phase 1: Probability Space & Random Fields
+## Phase 1: Probability Space & Random Fields (Completed)
 
 ### Goal
 Define the probability space for random trigonometric polynomials and prove their convergence to Gaussian Random Fields.
 
 ### Definitions
-1.  **SpectralMeasure**: Define the measure space for wave vectors $\mathbf{k}$ and phases $\phi$.
-2.  **RandomField**: Define $f(\mathbf{x}) = \sum c_i \cos(\mathbf{k}_i \cdot \mathbf{x} + \phi_i)$.
+1.  **SpectralMeasure**: Define the measure space for wave vectors $\mathbf{k}$ and phases $\phi$. (Implemented as `RandomWave` list)
+2.  **RandomField**: Define $f(\mathbf{x}) = \sum c_i \cos(\mathbf{k}_i \cdot \mathbf{x} + \phi_i)$. (Implemented in `SpectralDefinitions.v`)
 
 ### Theorems to Prove
 *   **Theorem 1.1 (Gaussianity)**:
     For any fixed $\mathbf{x}$, as $N \to \infty$, the distribution of $f(\mathbf{x})$ converges to $\mathcal{N}(0, \Sigma)$.
-    *Proof Strategy*: Use the Berry-Esseen theorem for sums of independent random variables.
-
+    *Status*: Axiomatized via `GaussianPDF` in `SpectralGeometry.v`.
+    
 *   **Theorem 1.2 (Isotropy)**:
     If $\mathbf{k}_i$ are drawn from a rotationally invariant distribution, then the covariance function $C(\mathbf{x}, \mathbf{y}) = \mathbb{E}[f(\mathbf{x})f(\mathbf{y})]$ depends only on $|\mathbf{x} - \mathbf{y}|$.
+    *Status*: **Verified** in `SpectralProperties.v` (`random_field_isotropy`, `random_field_deriv_isotropy`).
 
-## Phase 2: Geometry of the Landscape (Kac-Rice)
+## Phase 2: Geometry of the Landscape (Kac-Rice) (In Progress)
 
 ### Goal
 Formalize the "Rugged Landscape" argument by bounding the number of local minima.
