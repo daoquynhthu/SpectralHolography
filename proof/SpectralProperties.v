@@ -1276,3 +1276,73 @@ Proof.
   replace (y - y) with 0 by lra.
   reflexivity.
 Qed.
+
+Lemma random_field_deriv_isotropy : forall (rf : RandomField),
+  PairwiseIndependent rf ->
+  NoDup rf ->
+  exists (h : R -> R), forall (x y : R), Covariance (random_field_deriv rf x) (random_field_deriv rf y) = h (Rabs (x - y)).
+Proof.
+  intros rf H_ind H_nodup.
+  destruct (random_field_deriv_stationary rf H_ind H_nodup) as [g Hg].
+  exists g.
+  intros x y.
+  rewrite Hg.
+  
+  (* Prove g(x-y) = g(|x-y|) *)
+  assert (H_even: forall t, g t = g (-t)).
+  {
+    intros t.
+    (* Let x=t, y=0. x-y=t. y-x=-t. *)
+    assert (H_cov_sym: Covariance (random_field_deriv rf t) (random_field_deriv rf 0) = 
+                       Covariance (random_field_deriv rf 0) (random_field_deriv rf t)).
+    { unfold Covariance. f_equal. apply functional_extensionality. intros w. ring. }
+    
+    rewrite (Hg t 0) in H_cov_sym.
+    rewrite (Hg 0 t) in H_cov_sym.
+    replace (t - 0) with t in H_cov_sym by lra.
+    replace (0 - t) with (-t) in H_cov_sym by lra.
+    exact H_cov_sym.
+  }
+  
+  destruct (Rcase_abs (x - y)) as [H_neg | H_pos].
+  - rewrite (Rabs_left _ H_neg).
+    rewrite H_even.
+    reflexivity.
+  - rewrite (Rabs_right _ H_pos).
+    reflexivity.
+Qed.
+
+Lemma random_field_deriv2_isotropy : forall (rf : RandomField),
+  PairwiseIndependent rf ->
+  NoDup rf ->
+  exists (h : R -> R), forall (x y : R), Covariance (random_field_deriv2 rf x) (random_field_deriv2 rf y) = h (Rabs (x - y)).
+Proof.
+  intros rf H_ind H_nodup.
+  destruct (random_field_deriv2_stationary rf H_ind H_nodup) as [g Hg].
+  exists g.
+  intros x y.
+  rewrite Hg.
+  
+  (* Prove g(x-y) = g(|x-y|) *)
+  assert (H_even: forall t, g t = g (-t)).
+  {
+    intros t.
+    (* Let x=t, y=0. x-y=t. y-x=-t. *)
+    assert (H_cov_sym: Covariance (random_field_deriv2 rf t) (random_field_deriv2 rf 0) = 
+                       Covariance (random_field_deriv2 rf 0) (random_field_deriv2 rf t)).
+    { unfold Covariance. f_equal. apply functional_extensionality. intros w. ring. }
+    
+    rewrite (Hg t 0) in H_cov_sym.
+    rewrite (Hg 0 t) in H_cov_sym.
+    replace (t - 0) with t in H_cov_sym by lra.
+    replace (0 - t) with (-t) in H_cov_sym by lra.
+    exact H_cov_sym.
+  }
+  
+  destruct (Rcase_abs (x - y)) as [H_neg | H_pos].
+  - rewrite (Rabs_left _ H_neg).
+    rewrite H_even.
+    reflexivity.
+  - rewrite (Rabs_right _ H_pos).
+    reflexivity.
+Qed.
