@@ -571,6 +571,10 @@ Proof.
 Qed.
 
 
+
+
+
+
 (* --- Derivative Field Properties --- *)
 
 
@@ -1345,4 +1349,113 @@ Proof.
     reflexivity.
   - rewrite (Rabs_right _ H_pos).
     reflexivity.
+Qed.
+
+Arguments random_wave_deriv : simpl never.
+Arguments random_wave_deriv2 : simpl never.
+
+Lemma random_field_deriv_variance_sum_formula : forall (rf : RandomField),
+  PairwiseIndependent rf ->
+  NoDup rf ->
+  Variance (random_field_deriv rf 0) = 
+  fold_right (fun w acc => acc + 1/2 * (rw_amp w)^2 * (rw_freq w)^2) 0 rf.
+Proof.
+  intros rf H_ind H_nodup.
+  replace (Variance (random_field_deriv rf 0)) with (Covariance (random_field_deriv rf 0) (random_field_deriv rf 0)).
+  2: { unfold Variance, Covariance. f_equal. apply functional_extensionality. intros. ring. }
+  rewrite (random_field_deriv_covariance_sum rf 0 0); auto.
+  induction rf.
+  - simpl. reflexivity.
+  - simpl. rewrite Rplus_comm. f_equal.
+    { apply IHrf. unfold PairwiseIndependent in *. intros w1 w2 H1 H2. apply H_ind; auto. simpl. right. assumption. simpl. right. assumption. inversion H_nodup; assumption. }
+    rewrite Covariance_mean_zero.
+    2: { apply random_wave_deriv_mean_zero. }
+    2: { apply random_wave_deriv_mean_zero. }
+    unfold random_wave_deriv.
+    assert (H_rw_simpl: forall w, - (rw_amp a) * (rw_freq a) * sin (rw_freq a * 0 + rw_phase a w) = rw_amp a * - rw_freq a * sin (rw_phase a w)).
+    { intros. rewrite Rmult_0_r, Rplus_0_l. ring. }
+    replace (fun w => (- (rw_amp a) * (rw_freq a) * sin (rw_freq a * 0 + rw_phase a w)) *
+                      (- (rw_amp a) * (rw_freq a) * sin (rw_freq a * 0 + rw_phase a w)))
+      with (fun w => (rw_amp a * - rw_freq a * sin (rw_phase a w)) *
+                     (rw_amp a * - rw_freq a * sin (rw_phase a w))).
+    2: { apply functional_extensionality. intros. rewrite H_rw_simpl. reflexivity. }
+    assert (H_eq: Expectation (fun w => (rw_amp a * - rw_freq a * sin (rw_phase a w)) *
+                                        (rw_amp a * - rw_freq a * sin (rw_phase a w))) =
+                  1/2 * (rw_amp a)^2 * (rw_freq a)^2).
+    {
+      assert (H_sin: forall w, sin (rw_phase a w) * sin (rw_phase a w) = (sin (rw_phase a w))^2).
+      { intros. ring. }
+      set (c := (rw_amp a)^2 * (rw_freq a)^2).
+      set (X := fun w => (sin (rw_phase a w))^2).
+      replace (fun w => (rw_amp a * - rw_freq a * sin (rw_phase a w)) * (rw_amp a * - rw_freq a * sin (rw_phase a w)))
+        with (fun w => c * X w).
+      2: { unfold c, X. apply functional_extensionality. intros. ring_simplify. repeat rewrite H_sin. ring. }
+      
+      replace (Expectation (fun w => c * X w)) with (c * Expectation X).
+      2: { rewrite E_scal. reflexivity. }
+      
+      replace (Expectation X) with (1/2).
+      2: {
+        unfold X.
+        replace (fun w => (sin (rw_phase a w))^2) with (fun w => (sin (0 + rw_phase a w))^2).
+        2: { apply functional_extensionality. intros. rewrite Rplus_0_l. reflexivity. }
+        rewrite E_sin_sq_uniform. reflexivity.
+      }
+      subst c.
+      rewrite Rmult_comm. rewrite <- Rmult_assoc. reflexivity.
+    }
+    rewrite H_eq.
+    ring.
+Qed.
+
+Lemma random_field_deriv2_variance_sum_formula : forall (rf : RandomField),
+  PairwiseIndependent rf ->
+  NoDup rf ->
+  Variance (random_field_deriv2 rf 0) = 
+  fold_right (fun w acc => acc + 1/2 * (rw_amp w)^2 * (rw_freq w)^4) 0 rf.
+Proof.
+  intros rf H_ind H_nodup.
+  replace (Variance (random_field_deriv2 rf 0)) with (Covariance (random_field_deriv2 rf 0) (random_field_deriv2 rf 0)).
+  2: { unfold Variance, Covariance. f_equal. apply functional_extensionality. intros. ring. }
+  rewrite (random_field_deriv2_covariance_sum rf 0 0); auto.
+  induction rf.
+  - simpl. reflexivity.
+  - simpl. rewrite Rplus_comm. f_equal.
+    { apply IHrf. unfold PairwiseIndependent in *. intros w1 w2 H1 H2. apply H_ind; auto. simpl. right. assumption. simpl. right. assumption. inversion H_nodup; assumption. }
+    rewrite Covariance_mean_zero.
+    2: { apply random_wave_deriv2_mean_zero. }
+    2: { apply random_wave_deriv2_mean_zero. }
+    assert (H_simpl: forall w, random_wave_deriv2 a 0 w = rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w)).
+    { intros. unfold random_wave_deriv2. rewrite Rmult_0_r, Rplus_0_l. ring. }
+    replace (fun w => random_wave_deriv2 a 0 w * random_wave_deriv2 a 0 w)
+      with (fun w => (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w)) *
+                     (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w))).
+    2: { apply functional_extensionality. intros. rewrite H_simpl. reflexivity. }
+    assert (H_eq: Expectation (fun w => (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w)) *
+                                        (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w))) =
+                  1/2 * (rw_amp a)^2 * (rw_freq a)^4).
+    {
+      assert (H_cos: forall w, cos (rw_phase a w) * cos (rw_phase a w) = (cos (rw_phase a w))^2).
+      { intros. ring. }
+      set (c := (rw_amp a)^2 * (rw_freq a)^4).
+      set (X := fun w => (cos (rw_phase a w))^2).
+      replace (fun w => (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w)) * (rw_amp a * - (rw_freq a * rw_freq a) * cos (rw_phase a w)))
+         with (fun w => c * X w).
+       2: { unfold c, X. apply functional_extensionality. intros. ring_simplify. repeat rewrite H_cos. ring. }
+       
+       replace (Expectation (fun w => c * X w)) with (c * Expectation X).
+       2: { rewrite E_scal. reflexivity. }
+       
+       replace (Expectation X) with (1/2).
+       2: {
+         unfold X.
+         replace (fun w => (cos (rw_phase a w))^2) with (fun w => (cos (0 + rw_phase a w))^2).
+         2: { apply functional_extensionality. intros. rewrite Rplus_0_l. reflexivity. }
+         rewrite E_cos_sq_uniform. reflexivity.
+       }
+       subst c.
+      rewrite Rmult_comm. rewrite <- Rmult_assoc. reflexivity.
+    }
+    rewrite H_eq.
+    ring.
 Qed.

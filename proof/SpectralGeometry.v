@@ -58,6 +58,10 @@ Definition KacRiceIntegrand (rl : RandomLandscape) (x : R) : R :=
 (* Integral over [a, b] *)
 Parameter Integral : R -> R -> (R -> R) -> R.
 
+(* Integral of a constant function *)
+Axiom Integral_const : forall (a b c : R),
+  Integral a b (fun _ => c) = (b - a) * c.
+
 (* Expected Number of Critical Points *)
 Parameter ExpectedCritPoints : RandomLandscape -> R -> R -> R. (* RL, interval [a,b] -> expected count *)
 
@@ -194,4 +198,76 @@ Proof.
      all: try (apply Rgt_not_eq; assumption).
      all: try (apply Rgt_not_eq; apply PI_RGT_0).
      all: try assumption.
+Qed.
+
+Definition ExpectedCritPointsDensity (rl : RandomLandscape) : R :=
+  let V1 := Variance (random_field_deriv rl 0) in
+  let V2 := Variance (random_field_deriv2 rl 0) in
+  1 / PI * sqrt (V2 / V1).
+
+Theorem Kac_Rice_Integrand_Is_Constant : forall (rl : RandomLandscape) (x : R),
+  PairwiseIndependent rl ->
+  NoDup rl ->
+  let V1 := Variance (random_field_deriv rl 0) in
+  let V2 := Variance (random_field_deriv2 rl 0) in
+  V1 > 0 ->
+  V2 > 0 ->
+  (forall y z, JointDensity (fun w => random_field_deriv rl x w) (fun w => random_field_deriv2 rl x w) y z = 
+               GaussianPDF 0 (Variance (random_field_deriv rl x)) y * GaussianPDF 0 (Variance (random_field_deriv2 rl x)) z) ->
+  (forall sigma2, sigma2 > 0 -> IntegralR (fun y => Rabs y * GaussianPDF 0 sigma2 y) = sqrt (2 * sigma2 / PI)) ->
+  KacRiceIntegrand rl x = ExpectedCritPointsDensity rl.
+Proof.
+  intros rl x H_ind H_nodup V1 V2 H_pos_V1 H_pos_V2 H_joint H_int.
+  unfold ExpectedCritPointsDensity.
+  
+  (* Use transitivity to match the theorem's RHS *)
+  transitivity (1 / PI * sqrt (Variance (random_field_deriv2 rl x) / Variance (random_field_deriv rl x))).
+  - apply Kac_Rice_Integrand_Gaussian; try assumption.
+    + rewrite (random_field_deriv_variance_const rl x 0); auto.
+    + rewrite (random_field_deriv2_variance_const rl x 0); auto.
+  - unfold ExpectedCritPointsDensity.
+    rewrite (random_field_deriv_variance_const rl x 0); auto.
+    rewrite (random_field_deriv2_variance_const rl x 0); auto.
+Qed.
+
+Theorem Expected_Critical_Points_Density_Formula : forall (rl : RandomLandscape) (a b : R),
+  PairwiseIndependent rl ->
+  NoDup rl ->
+  let V1 := Variance (random_field_deriv rl 0) in
+  let V2 := Variance (random_field_deriv2 rl 0) in
+  V1 > 0 ->
+  V2 > 0 ->
+  (forall x, JointDensity (fun w => random_field_deriv rl x w) (fun w => random_field_deriv2 rl x w) = 
+             fun y z => GaussianPDF 0 (Variance (random_field_deriv rl x)) y * GaussianPDF 0 (Variance (random_field_deriv2 rl x)) z) ->
+  (forall sigma2, sigma2 > 0 -> IntegralR (fun y => Rabs y * GaussianPDF 0 sigma2 y) = sqrt (2 * sigma2 / PI)) ->
+  ExpectedCritPoints rl a b = (b - a) * ExpectedCritPointsDensity rl.
+Proof.
+  intros rl a b H_ind H_nodup V1 V2 H_pos_V1 H_pos_V2 H_joint H_int.
+  rewrite Kac_Rice_1D.
+  
+  (* Integrand is constant *)
+  replace (KacRiceIntegrand rl) with (fun _ : R => ExpectedCritPointsDensity rl).
+  - apply Integral_const.
+  - apply functional_extensionality. intros x_val.
+    symmetry.
+    apply Kac_Rice_Integrand_Is_Constant; try assumption.
+    (* Prove Joint Density condition for x_val *)
+    intros y z.
+    rewrite (H_joint x_val).
+    reflexivity.
+Qed.
+
+(* --- Explicit Formula with Wave Parameters --- *)
+
+Theorem Explicit_Kac_Rice_Density : forall (rl : RandomLandscape),
+  PairwiseIndependent rl ->
+  NoDup rl ->
+  let V1 := fold_right (fun w acc => acc + 1/2 * (rw_amp w)^2 * (rw_freq w)^2) 0 rl in
+  let V2 := fold_right (fun w acc => acc + 1/2 * (rw_amp w)^2 * (rw_freq w)^4) 0 rl in
+  ExpectedCritPointsDensity rl = 1 / PI * sqrt (V2 / V1).
+Proof.
+  intros.
+  unfold ExpectedCritPointsDensity.
+  rewrite random_field_deriv_variance_sum_formula; auto.
+  rewrite random_field_deriv2_variance_sum_formula; auto.
 Qed.
