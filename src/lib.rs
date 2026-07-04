@@ -1,3 +1,4 @@
+#![allow(clippy::missing_safety_doc)]
 use argon2::{
     password_hash::{
         rand_core::OsRng,
@@ -75,12 +76,12 @@ fn find_valid_point_ct(
 /// This ensures 256-bit security for coordinate generation.
 fn derive_chunk_seed(iv: u64, ctx: &ISHContext) -> [u8; 32] {
     let mut hasher = Sha256::new();
-    hasher.update(&iv.to_le_bytes());
-    hasher.update(&ctx.key_loc.x.to_le_bytes());
-    hasher.update(&ctx.key_loc.y.to_le_bytes());
-    hasher.update(&ctx.key_loc.z.to_le_bytes());
-    hasher.update(&ctx.ref_salt.to_le_bytes());
-    hasher.update(&ctx.mac_key); // Include MAC key for extra entropy
+    hasher.update(iv.to_le_bytes());
+    hasher.update(ctx.key_loc.x.to_le_bytes());
+    hasher.update(ctx.key_loc.y.to_le_bytes());
+    hasher.update(ctx.key_loc.z.to_le_bytes());
+    hasher.update(ctx.ref_salt.to_le_bytes());
+    hasher.update(ctx.mac_key); // Include MAC key for extra entropy
     hasher.finalize().into()
 }
 
@@ -94,12 +95,12 @@ pub fn ish_encrypt_chunk(iv: u64, chunk_index: u64, chunk: &[u8], ctx: &ISHConte
     
     // Seed for this chunk: combine IV, Context, and Chunk Index
     let mut hasher = Sha256::new();
-    hasher.update(&iv.to_le_bytes());
-    hasher.update(&ctx.key_loc.x.to_le_bytes());
-    hasher.update(&ctx.key_loc.y.to_le_bytes());
-    hasher.update(&ctx.key_loc.z.to_le_bytes());
-    hasher.update(&ctx.ref_salt.to_le_bytes());
-    hasher.update(&chunk_index.to_le_bytes());
+    hasher.update(iv.to_le_bytes());
+    hasher.update(ctx.key_loc.x.to_le_bytes());
+    hasher.update(ctx.key_loc.y.to_le_bytes());
+    hasher.update(ctx.key_loc.z.to_le_bytes());
+    hasher.update(ctx.ref_salt.to_le_bytes());
+    hasher.update(chunk_index.to_le_bytes());
     let seed_bytes: [u8; 32] = hasher.finalize().into();
     
     let mut point_rng = ChaCha20Rng::from_seed(seed_bytes);
@@ -125,12 +126,12 @@ pub fn ish_decrypt_chunk(iv: u64, chunk_index: u64, chunk: &[u8], ctx: &ISHConte
     let field_b_secret = generate_field(iv ^ ctx.ref_salt, N_WAVES);
     
     let mut hasher = Sha256::new();
-    hasher.update(&iv.to_le_bytes());
-    hasher.update(&ctx.key_loc.x.to_le_bytes());
-    hasher.update(&ctx.key_loc.y.to_le_bytes());
-    hasher.update(&ctx.key_loc.z.to_le_bytes());
-    hasher.update(&ctx.ref_salt.to_le_bytes());
-    hasher.update(&chunk_index.to_le_bytes());
+    hasher.update(iv.to_le_bytes());
+    hasher.update(ctx.key_loc.x.to_le_bytes());
+    hasher.update(ctx.key_loc.y.to_le_bytes());
+    hasher.update(ctx.key_loc.z.to_le_bytes());
+    hasher.update(ctx.ref_salt.to_le_bytes());
+    hasher.update(chunk_index.to_le_bytes());
     let seed_bytes: [u8; 32] = hasher.finalize().into();
     
     let mut point_rng = ChaCha20Rng::from_seed(seed_bytes);
@@ -165,12 +166,12 @@ pub fn ish_encrypt_chunk_z1(iv: u64, chunk_index: u64, chunk: &[u8], ctx: &ISHCo
     let field_b_secret = generate_field(iv ^ ctx.ref_salt, N_WAVES);
     
     let mut hasher = Sha256::new();
-    hasher.update(&iv.to_le_bytes());
-    hasher.update(&ctx.key_loc.x.to_le_bytes());
-    hasher.update(&ctx.key_loc.y.to_le_bytes());
-    hasher.update(&ctx.key_loc.z.to_le_bytes());
-    hasher.update(&ctx.ref_salt.to_le_bytes());
-    hasher.update(&chunk_index.to_le_bytes());
+    hasher.update(iv.to_le_bytes());
+    hasher.update(ctx.key_loc.x.to_le_bytes());
+    hasher.update(ctx.key_loc.y.to_le_bytes());
+    hasher.update(ctx.key_loc.z.to_le_bytes());
+    hasher.update(ctx.ref_salt.to_le_bytes());
+    hasher.update(chunk_index.to_le_bytes());
     let seed_bytes: [u8; 32] = hasher.finalize().into();
     
     let mut point_rng = ChaCha20Rng::from_seed(seed_bytes);
@@ -227,12 +228,12 @@ pub fn ish_decrypt_chunk_z1(iv: u64, chunk_index: u64, chunk: &[u8], ctx: &ISHCo
     let field_b_secret = generate_field(iv ^ ctx.ref_salt, N_WAVES);
     
     let mut hasher = Sha256::new();
-    hasher.update(&iv.to_le_bytes());
-    hasher.update(&ctx.key_loc.x.to_le_bytes());
-    hasher.update(&ctx.key_loc.y.to_le_bytes());
-    hasher.update(&ctx.key_loc.z.to_le_bytes());
-    hasher.update(&ctx.ref_salt.to_le_bytes());
-    hasher.update(&chunk_index.to_le_bytes());
+    hasher.update(iv.to_le_bytes());
+    hasher.update(ctx.key_loc.x.to_le_bytes());
+    hasher.update(ctx.key_loc.y.to_le_bytes());
+    hasher.update(ctx.key_loc.z.to_le_bytes());
+    hasher.update(ctx.ref_salt.to_le_bytes());
+    hasher.update(chunk_index.to_le_bytes());
     let seed_bytes: [u8; 32] = hasher.finalize().into();
     
     let mut point_rng = ChaCha20Rng::from_seed(seed_bytes);
@@ -290,9 +291,9 @@ const SINGULARITY_THRESHOLD: f64 = 1e-6;
 
 // AVX2 Cosine Approximation Constants
 #[cfg(target_arch = "x86_64")]
-const TWO_PI: f64 = 6.283185307179586;
+const TWO_PI: f64 = std::f64::consts::TAU;
 #[cfg(target_arch = "x86_64")]
-const INV_TWO_PI: f64 = 0.15915494309189535;
+const INV_TWO_PI: f64 = 1.0 / std::f64::consts::TAU;
 
 // AVX2 Cosine Approximation Helper
 #[cfg(target_arch = "x86_64")]
@@ -315,7 +316,7 @@ unsafe fn avx2_cos_pd(x: __m256d) -> __m256d {
     let c1 = _mm256_set1_pd(-0.5);
     let c2 = _mm256_set1_pd(0.041666666666666664); // 1/24
     let c3 = _mm256_set1_pd(-0.001388888888888889); // -1/720
-    let c4 = _mm256_set1_pd(0.00002480158730158730); // 1/40320
+    let c4 = _mm256_set1_pd(0.000_024_801_587_301_587_3); // 1/40320
     let c5 = _mm256_set1_pd(-0.00000027557319223985893); // -1/3628800
     
     // Horner's method: c0 + r2*(c1 + r2*(c2 + r2*(c3 + r2*(c4 + r2*c5))))
@@ -323,9 +324,7 @@ unsafe fn avx2_cos_pd(x: __m256d) -> __m256d {
     let term = _mm256_fmadd_pd(term, r2, c3);
     let term = _mm256_fmadd_pd(term, r2, c2);
     let term = _mm256_fmadd_pd(term, r2, c1);
-    let term = _mm256_fmadd_pd(term, r2, c0);
-    
-    term
+    _mm256_fmadd_pd(term, r2, c0)
 }
 
 // use rand_distr::{Normal, Distribution}; // Need Normal distribution for 3D isotropy
@@ -1118,10 +1117,7 @@ pub unsafe extern "C" fn ish_encrypt_file(ctx: *mut ISHContext, input_path: *con
         }
     });
 
-    match result {
-        Ok(code) => code,
-        Err(_) => -99, // Panic caught
-    }
+    result.unwrap_or(-99)
 }
 
 #[no_mangle]
@@ -1159,9 +1155,7 @@ pub unsafe extern "C" fn ish_decrypt_file(ctx: *mut ISHContext, input_path: *con
             if reader.read_exact(&mut salt_len_bytes).is_err() { return -4; }
             let salt_len = u32::from_le_bytes(salt_len_bytes) as i64;
             
-            if salt_len > 0 {
-                if reader.seek(SeekFrom::Current(salt_len)).is_err() { return -4; }
-            }
+            if salt_len > 0 && reader.seek(SeekFrom::Current(salt_len)).is_err() { return -4; }
 
             // 3. Read Count
             let mut count_bytes = [0u8; 8];
@@ -1209,10 +1203,7 @@ pub unsafe extern "C" fn ish_decrypt_file(ctx: *mut ISHContext, input_path: *con
         }
     });
 
-    match result {
-        Ok(code) => code,
-        Err(_) => -99,
-    }
+    result.unwrap_or(-99)
 }
 
 // --- ISH-Z1 Protocol (Compression) ---
@@ -1299,7 +1290,7 @@ pub unsafe extern "C" fn ish_encrypt_file_z1(ctx: *mut ISHContext, input_path: *
             0 
         }
     });
-    match result { Ok(code) => code, Err(_) => -99 }
+    result.unwrap_or(-99)
 }
 
 #[no_mangle]
@@ -1327,9 +1318,7 @@ pub unsafe extern "C" fn ish_decrypt_file_z1(ctx: *mut ISHContext, input_path: *
             if reader.read_exact(&mut salt_len_bytes).is_err() { return -4; }
             let salt_len = u32::from_le_bytes(salt_len_bytes) as i64;
             
-            if salt_len > 0 {
-                if reader.seek(SeekFrom::Current(salt_len)).is_err() { return -4; }
-            }
+            if salt_len > 0 && reader.seek(SeekFrom::Current(salt_len)).is_err() { return -4; }
 
             let mut count_bytes = [0u8; 8];
             if reader.read_exact(&mut count_bytes).is_err() { return -5; }
@@ -1374,7 +1363,7 @@ pub unsafe extern "C" fn ish_decrypt_file_z1(ctx: *mut ISHContext, input_path: *
             0 
         }
     });
-    match result { Ok(code) => code, Err(_) => -99 }
+    result.unwrap_or(-99)
 }
 
 // --- Raw Pointer Helpers (Little Endian) ---

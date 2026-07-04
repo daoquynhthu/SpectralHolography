@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --exclude performance_test
+      - run: cargo test -- --skip test_performance_and_ratio
 
   clippy:
     runs-on: ubuntu-latest
