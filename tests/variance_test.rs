@@ -1,4 +1,4 @@
-use spectral_holography::{ISHContext, ish_encrypt_chunk};
+use spectral_holography::{ish_encrypt_chunk, ISHContext};
 
 #[test]
 fn test_variance_leakage() {
@@ -9,18 +9,18 @@ fn test_variance_leakage() {
     let mac_key = [0u8; 32];
     // Create a context
     let ctx = ISHContext::new(x, y, z, seed_u64, None, mac_key);
-    
+
     let iv = 9999;
-    
+
     // Test Case 1: All zeros
     let n_samples = 1000; // Reduced size for unit test
     let zeros = vec![0u8; n_samples];
     let deltas_zeros = ish_encrypt_chunk(iv, 0, &zeros, &ctx);
-    
+
     // Test Case 2: All 255s
     let max_vals = vec![255u8; n_samples];
     let deltas_max = ish_encrypt_chunk(iv, 0, &max_vals, &ctx);
-    
+
     // Parse deltas (f64 from bytes)
     let deltas_zeros_f64 = parse_deltas(&deltas_zeros);
     let deltas_max_f64 = parse_deltas(&deltas_max);
@@ -28,18 +28,22 @@ fn test_variance_leakage() {
     // Calculate Variance
     let var_zeros = variance(&deltas_zeros_f64);
     let var_max = variance(&deltas_max_f64);
-    
+
     println!("Variance (Zeros): {:.2}", var_zeros);
     println!("Variance (255s): {:.2}", var_max);
-    
+
     // Check for division by zero if variance is 0 (unlikely)
     if var_zeros.abs() < 1e-9 {
-         println!("Variance is zero, skipping ratio check.");
+        println!("Variance is zero, skipping ratio check.");
     } else {
         let ratio = var_max / var_zeros;
         println!("Ratio: {:.2}", ratio);
         // Ideally, the variance should be indistinguishable.
-        assert!((ratio - 1.0).abs() < 0.2, "Variance leakage detected! Ratio: {}", ratio);
+        assert!(
+            (ratio - 1.0).abs() < 0.2,
+            "Variance leakage detected! Ratio: {}",
+            ratio
+        );
     }
 }
 

@@ -1,6 +1,6 @@
-use spectral_holography::{generate_field, Vector3D};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
+use spectral_holography::{generate_field, Vector3D};
 
 // Simple Linear Equation Solver (Gaussian Elimination)
 fn solve_linear_system(matrix: &Vec<Vec<f64>>, rhs: &Vec<f64>) -> Option<Vec<f64>> {
@@ -59,7 +59,7 @@ fn test_linear_complexity_vulnerability() {
     // 1. Setup a small field (N=3)
     // A sum of N sinusoids satisfies a linear recurrence of order 2N IF sampled equidistantly.
     let seed = 12345;
-    let n_waves = 3; 
+    let n_waves = 3;
     let order = 2 * n_waves; // 6
     let field = generate_field(seed, n_waves);
     let key_loc = Vector3D::new(10.0, 10.0, 10.0);
@@ -68,7 +68,7 @@ fn test_linear_complexity_vulnerability() {
     let mut rng = ChaCha20Rng::seed_from_u64(999);
     let mut samples = Vec::new();
     let num_samples = 2 * order + 20;
-    
+
     // We collect samples at random points around key_loc
     for _ in 0..num_samples {
         let dx = (rng.gen::<f64>() - 0.5) * 0.1;
@@ -82,7 +82,7 @@ fn test_linear_complexity_vulnerability() {
     // 3. Build Linear System (Assuming equidistant sampling - attacker doesn't know jitter)
     // The attacker assumes x[n] = -sum(c[j]*x[n-j])
     // This model fails because the sampling is not equidistant.
-    
+
     let mut matrix = Vec::new();
     let mut rhs = Vec::new();
 
@@ -112,23 +112,32 @@ fn test_linear_complexity_vulnerability() {
 
     // 5. Predict Next Value
     let target_idx = 2 * order;
-    
+
     // We try to predict the sample at target_idx using the linear recurrence
     // derived from previous samples.
-    
+
     let actual_val_in_seq = samples[target_idx];
-    
+
     let mut predicted_val = 0.0;
     for j in 1..=order {
         let past_val = samples[target_idx - j];
-        predicted_val -= coeffs[j-1] * past_val;
+        predicted_val -= coeffs[j - 1] * past_val;
     }
 
-    println!("Actual: {}, Predicted: {}", actual_val_in_seq, predicted_val);
+    println!(
+        "Actual: {}, Predicted: {}",
+        actual_val_in_seq, predicted_val
+    );
     let error = (actual_val_in_seq - predicted_val).abs();
     println!("Prediction Error: {}", error);
 
     // Assert error is large
-    assert!(error > 1e-4, "Linear prediction succeeded! Vulnerability confirmed.");
-    println!("Attack Failed as expected! Linear complexity broken. Error: {}", error);
+    assert!(
+        error > 1e-4,
+        "Linear prediction succeeded! Vulnerability confirmed."
+    );
+    println!(
+        "Attack Failed as expected! Linear complexity broken. Error: {}",
+        error
+    );
 }
