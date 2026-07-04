@@ -1,0 +1,12 @@
+-R . SpectralHolography
+SpectralDefinitions.v
+SpectralDefinitions2D.v
+SpectralProperties.v
+SpectralProperties2D.v
+SpectralGeometry.v
+SpectralIndistinguishability.v
+SpectralIndistinguishability2D.v
+EndToEndSecurity.v
+CheckCos.v
+CheckCos2a.v
+CheckCosMult.v

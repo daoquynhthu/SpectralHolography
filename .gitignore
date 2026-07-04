@@ -1,12 +1,29 @@
-# Coq intermediate files
-*.vo
-*.vok
-*.vos
-*.glob
-*.aux
-.*.aux
-.CoqProject
+# Rust build artifacts
+target/
+**/*.rs.bk
 
-# Python cache
+# Rust performance test data
+perf_test_*
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Coq compiled artifacts
+docs/proof/*.vo
+docs/proof/*.vok
+docs/proof/*.vos
+docs/proof/*.glob
+docs/proof/*.aux
+docs/proof/.*.aux
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store

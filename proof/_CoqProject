@@ -1,5 +1,0 @@
-
--R . SpectralHolography
-SpectralDefinitions.v
-SpectralProperties.v
-SpectralGeometry.v
